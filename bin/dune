@@ -1,0 +1,4 @@
+(executable
+ (public_name europa)
+ (name main)
+ (libraries europa))
