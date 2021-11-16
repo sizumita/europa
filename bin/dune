@@ -1,4 +1,4 @@
 (executable
  (public_name europa)
  (name main)
- (libraries europa))
+ (libraries europa_compiler llvm llvm.executionengine llvm.target llvm.scalar_opts))

@@ -1,8 +1,0 @@
-(menhir
-  (modules parser))
-
-(library
-  (name europa)
-   (preprocess (pps sedlex.ppx))
- (libraries sedlex menhirLib ppx_deriving)
-)

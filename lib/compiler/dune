@@ -1,0 +1,8 @@
+(menhir
+  (modules parser))
+
+(library
+  (name europa_compiler)
+   (preprocess (pps sedlex.ppx))
+ (libraries sedlex menhirLib ppx_deriving ppx_deriving.show llvm llvm.analysis)
+)
