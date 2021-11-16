@@ -3,7 +3,7 @@ open Llvm
 
 let function_call the_function ee ret_type =
   match ret_type with
-  | Ast.Int -> (
+  | Ast.IntT | Ast.NilT | Ast.BoolT -> (
     let exec = Llvm_executionengine.get_function_address
       (Llvm.value_name the_function) (Foreign.funptr Ctypes.(void @-> returning int)) ee
     in

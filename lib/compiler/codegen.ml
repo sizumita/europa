@@ -9,15 +9,49 @@ let named_values:(string, llvalue) Hashtbl.t = Hashtbl.create 10
 let double_type = double_type context
 let int_type = i32_type context
 let string_type = i8_type context
+let void_type = void_type context
+let bool_type = i1_type context
+
+let get_body body = function
+  | Ast.NilT -> Ast.Expr (Ast.Integer 1)
+  | _ -> List.hd body
 
 let get_type = function
-  | Ast.Int -> int_type
+  | Ast.IntT -> int_type
+  | Ast.NilT -> int_type
+  | Ast.BoolT -> bool_type
 
 let rec codegen_expr = function
   | Ast.Ident name -> (try Hashtbl.find named_values name with
     | Not_found -> raise (Error (Printf.sprintf "unknown variable name: %s" name)))
   | Ast.Integer value -> const_int int_type value
-  | _ -> raise (Error "unknown operation")
+  | Ast.If (cond, then_, else_) ->
+    let cond = codegen_expr cond in
+    let zero = const_int bool_type 0 in
+    let cond_val = build_fcmp Fcmp.One cond zero "ifcond" builder in
+    let start_bb = insertion_block builder in
+    let the_function = block_parent start_bb in
+    let then_bb = append_block context "then" the_function in
+    position_at_end then_bb builder;
+    let then_val = codegen_expr then_ in
+    let new_then_bb = insertion_block builder in
+    let else_bb = append_block context "else" the_function in
+    position_at_end else_bb builder;
+    let else_val = codegen_expr else_ in
+    let new_else_bb = insertion_block builder in
+    let merge_bb = append_block context "ifcont" the_function in
+    position_at_end merge_bb builder;
+    let incoming = [(then_val, new_then_bb); (else_val, new_else_bb)] in
+    let phi = build_phi incoming "iftmp" builder in
+    position_at_end start_bb builder;
+    ignore (build_cond_br cond_val then_bb else_bb builder);
+    position_at_end new_then_bb builder; ignore (build_br merge_bb builder);
+    position_at_end new_else_bb builder; ignore (build_br merge_bb builder);
+    position_at_end merge_bb builder;
+
+    phi
+  | Ast.Bool value -> const_int int_type (if value then 1 else 0)
+  | _ -> raise (Error "unknown operation expr")
 
 and codegen_statement statement the_fpm =
   match statement with
@@ -43,7 +77,7 @@ and codegen_statement statement the_fpm =
       | Minus -> build_sub lhs_val rhs_val "subtmp" builder
       | Mul -> build_mul lhs_val rhs_val "multmp" builder
     end
-  | _ -> raise (Error "unknown operation")
+  | _ -> raise (Error "unknown operation stmt")
 
 and codegen_func data the_fpm = 
   let name, args, arg_types, ret_type, body = data in
@@ -52,7 +86,8 @@ and codegen_func data the_fpm =
   let bb = append_block context "entry" the_function in
   position_at_end bb builder;
   try
-    let ret_val = codegen_statement (List.hd body) the_fpm in
+ 
+    let ret_val = codegen_statement (get_body body ret_type) the_fpm in
     let _ = build_ret ret_val builder in
 
     (* Validate the generated code, checking for consistency. *)

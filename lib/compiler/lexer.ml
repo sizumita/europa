@@ -57,6 +57,10 @@ let rec lex lexbuf =
     | digit -> update lexbuf ; INT (lexeme lexbuf |> int_of_string)
     | "func" -> update lexbuf ; FUNC
     | "integer" -> update lexbuf ; TYPE "integer"
+    | "true" -> update lexbuf ; TRUE
+    | "false" -> update lexbuf ; FALSE
+    | "if" -> update lexbuf ; IF
+    | "else" -> update lexbuf ; ELSE
     | ident -> update lexbuf ; IDENT (lexeme lexbuf)
     | '{' -> update lexbuf ; LB
     | '}' -> update lexbuf ; RB
@@ -93,4 +97,4 @@ let parse_prog lexbuf =
   parse Parser.prog lexbuf
 
 let parse_statement lexbuf =
-  parse Parser.toplevel lexbuf
+  parse Parser.toplevel lexbuf;
