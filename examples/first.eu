@@ -1,5 +1,7 @@
+# 渡した値を表示して改行します。 #
 extern printi(X i32) i32;
-extern read_int() i32;
+# stdinから数値を読み取ります。 #
+extern read_int() i32; 
 
 func get_value() i32 {
     read_int() + 50

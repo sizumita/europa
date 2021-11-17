@@ -46,6 +46,7 @@ let raise_ParseError lexbuf =
 let rec lex lexbuf =
   let buf = lexbuf.stream in
   match%sedlex buf with
+    | '#' -> update lexbuf ; comment lexbuf
     | '\n' ->
       update lexbuf; new_line lexbuf;
       lex lexbuf
@@ -77,6 +78,13 @@ let rec lex lexbuf =
     | '*' -> update lexbuf ; MUL
     | eof -> update lexbuf ; EOF
     | _ -> update lexbuf; raise_ParseError lexbuf
+and comment lexbuf =
+  let buf = lexbuf.stream in
+  match%sedlex buf with
+  | "\n" -> update lexbuf ; new_line lexbuf; lex lexbuf
+  | eof -> update lexbuf ; EOF
+  | any -> update lexbuf ; comment lexbuf
+  | _ -> update lexbuf ; raise_ParseError lexbuf
 
 let parse f lexbuf =
   let lexer () = 

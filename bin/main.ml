@@ -29,7 +29,7 @@ let main () =
   ignore (PassManager.initialize the_fpm);
 
   let lexbuf = Lexer.create_lexbuf @@
-        Sedlexing.Utf8.from_string (File.lines_of Sys.argv.(1) |> Enum.fold (fun a b -> a ^ b) "") in
+        Sedlexing.Utf8.from_string (File.lines_of Sys.argv.(1) |> Enum.fold (fun a b -> a ^ "\n" ^ b) "") in
         Lexer.parse_prog lexbuf |> List.iter (fun x -> let _ = Codegen.codegen_statement x the_fpm in ());
   dump_module Codegen.the_module;
   match lookup_function "main" Codegen.the_module with
