@@ -4,13 +4,13 @@ type operator =
   | Mul
 
 type variable_type =
-  | IntT
+  | I32T
   | NilT
   | BoolT
 
 type expr =
   | Ident of string
-  | Integer of int
+  | I32 of int
   | Type of string
   | Bool of bool
   | Nil
@@ -37,7 +37,7 @@ let string_of_ParseError (file, line, cnum, tok) =
     line cnum tok
 
 let get_type = function
-  | Some("integer") -> IntT
+  | Some("integer") -> I32T
   | Some "nil" -> NilT
   | None -> NilT
   | _ -> failwith "unknown type"

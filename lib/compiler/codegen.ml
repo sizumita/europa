@@ -13,18 +13,18 @@ let void_type = void_type context
 let bool_type = i1_type context
 
 let get_body body = function
-  | Ast.NilT -> if List.length body = 0 then Ast.Expr (Ast.Integer 1) else List.hd body
+  | Ast.NilT -> if List.length body = 0 then Ast.Expr (Ast.I32 1) else List.hd body
   | _ -> List.hd body
 
 let get_type = function
-  | Ast.IntT -> int_type
+  | Ast.I32T -> int_type
   | Ast.NilT -> void_type
   | Ast.BoolT -> bool_type
 
 let rec codegen_expr = function
   | Ast.Ident name -> (try Hashtbl.find named_values name with
     | Not_found -> raise (Error (Printf.sprintf "unknown variable name: %s" name)))
-  | Ast.Integer value -> const_int int_type value
+  | Ast.I32 value -> const_int int_type value
   | Ast.If (cond, then_, else_) ->
     let cond = codegen_expr cond in
     let zero = const_int bool_type 1 in

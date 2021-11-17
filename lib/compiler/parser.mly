@@ -59,14 +59,17 @@ arguments:
   | name = IDENT; arg_type = TYPE; option(COMMA) { ([name], [get_type @@ Some (arg_type)]) }
 
 expression:
+  | bin = binary { bin }
   | TRUE { Bool true }
   | FALSE { Bool false }
   | NIL { Nil }
   | value = IDENT { Ident value }
-  | value = INT { Integer value }
+  | value = INT { I32 value }
   | IF cond = expression; LB then_ = expression; RB ELSE LB else_ = expression; RB { If (cond, then_, else_) }
   | name = IDENT; LP RP { Call (Ident name, [||]) }
   | name = IDENT; LP args = list(expression) RP { Call (Ident name, args |> Array.of_list)}
+
+binary:
   | lhs = expression; PLUS rhs = expression { Operator (Plus, lhs, rhs) }
   | lhs = expression; MINUS rhs = expression { Operator (Minus, lhs, rhs) }
   | lhs = expression; MUL rhs = expression { Operator (Mul, lhs, rhs) }
