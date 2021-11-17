@@ -15,14 +15,14 @@ type expr =
   | Bool of bool
   | Nil
   | If of expr * expr * expr
+  | Call of expr * expr array
+  | Operator of operator * expr * expr
   [@@deriving show]
 
 type statement =
   | Expr of expr
   (* name, arguments, argument types, return type, statements *)
   | Func of string * string list * variable_type list * variable_type * statement list
-  | Call of expr * expr array
-  | Operator of operator * expr * expr
   [@@deriving show]
 
 let string_of_ParseError (file, line, cnum, tok) =
@@ -37,5 +37,6 @@ let string_of_ParseError (file, line, cnum, tok) =
 
 let get_type = function
   | Some("integer") -> IntT
+  | Some "nil" -> NilT
   | None -> NilT
   | _ -> failwith "unknown type"

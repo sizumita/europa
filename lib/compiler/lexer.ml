@@ -57,6 +57,7 @@ let rec lex lexbuf =
     | digit -> update lexbuf ; INT (lexeme lexbuf |> int_of_string)
     | "func" -> update lexbuf ; FUNC
     | "integer" -> update lexbuf ; TYPE "integer"
+    | "nil" -> update lexbuf ; NIL
     | "true" -> update lexbuf ; TRUE
     | "false" -> update lexbuf ; FALSE
     | "if" -> update lexbuf ; IF

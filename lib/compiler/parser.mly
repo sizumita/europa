@@ -4,8 +4,8 @@ open Ast
 
 %token <string> IDENT TYPE
 %token <int> INT
-%token TRUE FALSE
-%token FUNC IF ELSE
+%token TRUE FALSE NIL
+%token FUNC IF ELSE EXTERN
 %token PLUS MINUS DIV MUL
 %token LB RB LP RP
 %token SEMI COMMA COLON
@@ -56,6 +56,12 @@ arguments:
 expression:
   | TRUE { Bool true }
   | FALSE { Bool false }
+  | NIL { Nil }
   | value = IDENT { Ident value }
   | value = INT { Integer value }
   | IF cond = expression; LB then_ = expression; RB ELSE LB else_ = expression; RB { If (cond, then_, else_) }
+  | name = IDENT; LP RP { Call (Ident name, [||]) }
+  | name = IDENT; LP args = list(expression) RP { Call (Ident name, args |> Array.of_list)}
+  | lhs = expression; PLUS rhs = expression { Operator (Plus, lhs, rhs) }
+  | lhs = expression; MINUS rhs = expression { Operator (Minus, lhs, rhs) }
+  | lhs = expression; MUL rhs = expression { Operator (Mul, lhs, rhs) }

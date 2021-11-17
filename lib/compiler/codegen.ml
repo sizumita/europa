@@ -18,7 +18,7 @@ let get_body body = function
 
 let get_type = function
   | Ast.IntT -> int_type
-  | Ast.NilT -> int_type
+  | Ast.NilT -> void_type
   | Ast.BoolT -> bool_type
 
 let rec codegen_expr = function
@@ -27,8 +27,8 @@ let rec codegen_expr = function
   | Ast.Integer value -> const_int int_type value
   | Ast.If (cond, then_, else_) ->
     let cond = codegen_expr cond in
-    let zero = const_int bool_type 0 in
-    let cond_val = build_fcmp Fcmp.One cond zero "ifcond" builder in
+    let zero = const_int bool_type 1 in
+    let cond_val = build_icmp Icmp.Eq cond zero "ifcond" builder in
     let start_bb = insertion_block builder in
     let the_function = block_parent start_bb in
     let then_bb = append_block context "then" the_function in
@@ -50,12 +50,6 @@ let rec codegen_expr = function
     position_at_end merge_bb builder;
 
     phi
-  | Ast.Bool value -> const_int int_type (if value then 1 else 0)
-  | _ -> raise (Error "unknown operation expr")
-
-and codegen_statement statement the_fpm =
-  match statement with
-  | Ast.Expr exp -> codegen_expr exp
   | Ast.Call (Ast.Ident callee, args) -> 
     let callee =
       match lookup_function callee the_module with
@@ -67,7 +61,7 @@ and codegen_statement statement the_fpm =
       raise (Error "incorrect # arguments passed");
     let args = Array.map codegen_expr args in
     build_call callee args "calltmp" builder
-  | Ast.Func (name, args, arg_types, ret_type, body) -> codegen_func (name, args, arg_types, ret_type, body) the_fpm
+  | Ast.Bool value -> const_int int_type (if value then 1 else 0)
   | Ast.Operator (op, lhs, rhs) -> 
     let lhs_val = codegen_expr lhs in
     let rhs_val = codegen_expr rhs in
@@ -77,7 +71,13 @@ and codegen_statement statement the_fpm =
       | Minus -> build_sub lhs_val rhs_val "subtmp" builder
       | Mul -> build_mul lhs_val rhs_val "multmp" builder
     end
-  | _ -> raise (Error "unknown operation stmt")
+  | _ -> raise (Error "unknown operation expr")
+
+and codegen_statement statement the_fpm =
+  match statement with
+  | Ast.Expr exp -> codegen_expr exp
+  | Ast.Func (name, args, arg_types, ret_type, body) -> codegen_func (name, args, arg_types, ret_type, body) the_fpm
+  (* | _ -> raise (Error "unknown operation stmt") *)
 
 and codegen_func data the_fpm = 
   let name, args, arg_types, ret_type, body = data in
@@ -87,9 +87,9 @@ and codegen_func data the_fpm =
   position_at_end bb builder;
   try
  
-    let ret_val = codegen_statement (get_body body ret_type) the_fpm in
-    let _ = build_ret ret_val builder in
-
+    let _ = match ret_type with
+    | Ast.NilT -> build_ret_void builder
+    | _ -> let ret_val = codegen_statement (get_body body ret_type) the_fpm in build_ret ret_val builder in
     (* Validate the generated code, checking for consistency. *)
     Llvm_analysis.assert_valid_function the_function;
 

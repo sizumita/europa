@@ -21,8 +21,6 @@ let rec main_loop the_fpm the_execution_engine =
     let the_function = Codegen.codegen_statement (Func (name, args, arg_types, ret_type, body)) the_fpm in
       dump_value the_function;
       print_endline "";
-      function_call the_function the_execution_engine ret_type;
-      print_endline "";
       main_loop the_fpm the_execution_engine
     end
 
