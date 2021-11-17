@@ -1,7 +1,7 @@
 open Parser
 
 let digit = [%sedlex.regexp? '0'..'9']
-let ident = [%sedlex.regexp? 'A'..'Z' | 'a'..'z', Star ('A'..'Z' | 'a'..'z' | '0'..'9')]
+let ident = [%sedlex.regexp? ('A'..'Z' | 'a'..'z' | '_'), Star ('A'..'Z' | 'a'..'z' | '0'..'9' | '_')]
 
 type lexbuf = {
   stream : Sedlexing.lexbuf ;

@@ -11,3 +11,9 @@ extern int printi(long X) {
   fprintf(stderr, "%ld\n", X);
   return 0;
 }
+
+extern long read_int() {
+    long dt;
+    scanf("%ld", &dt);
+    return dt;
+}

@@ -1,5 +1,6 @@
 extern printi(X i32) i32;
+extern read_int() i32;
 
 func main() i32 {
-    printi(2)
+    printi(read_int())
 }
