@@ -13,7 +13,7 @@ let void_type = void_type context
 let bool_type = i1_type context
 
 let get_body body = function
-  | Ast.NilT -> Ast.Expr (Ast.Integer 1)
+  | Ast.NilT -> if List.length body = 0 then Ast.Expr (Ast.Integer 1) else List.hd body
   | _ -> List.hd body
 
 let get_type = function
@@ -77,6 +77,7 @@ and codegen_statement statement the_fpm =
   match statement with
   | Ast.Expr exp -> codegen_expr exp
   | Ast.Func (name, args, arg_types, ret_type, body) -> codegen_func (name, args, arg_types, ret_type, body) the_fpm
+  | Ast.Extern (name, args, arg_types, ret_type) -> codegen_definition (name, args, arg_types, ret_type)
   (* | _ -> raise (Error "unknown operation stmt") *)
 
 and codegen_func data the_fpm = 
@@ -101,6 +102,7 @@ and codegen_func data the_fpm =
     delete_function the_function;
     raise e
 and codegen_definition (name, args, arg_types, ret_type) =
+  Hashtbl.clear named_values;
   let args = args |> Array.of_list in
   let ret_type = ret_type |> get_type in
   let arg_types = arg_types |> List.map get_type |> Array.of_list in

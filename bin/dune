@@ -1,4 +1,7 @@
 (executable
  (public_name europa)
  (name main)
- (libraries europa_compiler llvm llvm.executionengine llvm.target llvm.scalar_opts))
+ (libraries europa_compiler llvm llvm.executionengine llvm.target llvm.scalar_opts batteries)
+ (link_deps (file ../stubs/libbindings.so))
+ (link_flags -cclib -Lstubs -cclib -lbindings)
+)

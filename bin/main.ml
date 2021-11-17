@@ -1,6 +1,13 @@
 open Llvm
 open Europa_compiler
 open Llvm_scalar_opts
+open Batteries
+
+let main_function_call the_function ee =
+  let exec = Llvm_executionengine.get_function_address
+    (Llvm.value_name the_function) (Foreign.funptr Ctypes.(void @-> returning int)) ee
+  in
+  Printf.printf "Evaluated to %i\n" @@ exec ()
 
 let main () =
   let _ = Llvm_executionengine.initialize () in
@@ -21,8 +28,15 @@ let main () =
 
   ignore (PassManager.initialize the_fpm);
 
-  (* Run the main "interpreter loop" now. *)
-  Toplevel.main_loop the_fpm the_execution_engine;
-  dump_module Europa_compiler.Codegen.the_module;;
+  let lexbuf = Lexer.create_lexbuf @@
+        Sedlexing.Utf8.from_string (File.lines_of Sys.argv.(1) |> Enum.fold (fun a b -> a ^ b) "") in
+        Lexer.parse_prog lexbuf |> List.iter (fun x -> let _ = Codegen.codegen_statement x the_fpm in ());
+  dump_module Codegen.the_module;
+  match lookup_function "main" Codegen.the_module with
+  | None -> failwith "need function: main"
+  | Some the_function ->
+    let _ = print_endline "\n\n---- run main ----" in
+    main_function_call the_function the_execution_engine;;
+
 
 main ()

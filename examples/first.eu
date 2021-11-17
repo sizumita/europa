@@ -1,0 +1,5 @@
+extern printi(X i32) i32;
+
+func main() i32 {
+    printi(2)
+}

@@ -23,6 +23,7 @@ type statement =
   | Expr of expr
   (* name, arguments, argument types, return type, statements *)
   | Func of string * string list * variable_type list * variable_type * statement list
+  | Extern of string * string list * variable_type list * variable_type
   [@@deriving show]
 
 let string_of_ParseError (file, line, cnum, tok) =

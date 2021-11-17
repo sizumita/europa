@@ -48,6 +48,11 @@ statement:
     | None -> Func (name, [], [], get_type ret_type, body)
     | Some((names, types)) -> Func (name, names, types, get_type ret_type, body)
   }
+  | EXTERN name = IDENT; LP args = option(arguments); RP ret_type = option(TYPE); SEMI { 
+    match args with
+    | None -> Extern (name, [], [], get_type ret_type)
+    | Some((names, types)) -> Extern (name, names, types, get_type ret_type)
+    }
 
 arguments:
   | name = IDENT; arg_type = TYPE; COMMA rest = arguments { let (names, types) = rest in (name :: names, (get_type @@ Some arg_type) :: types) }
