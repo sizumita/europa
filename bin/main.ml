@@ -10,10 +10,7 @@ let main_function_call the_function ee =
   Printf.printf "Evaluated to %i\n" @@ exec ()
 
 let main () =
-  let _ = Llvm_executionengine.initialize () in
-  let the_execution_engine = Llvm_executionengine.create Codegen.the_module in
-
-  let the_fpm = PassManager.create_function Codegen.the_module in
+  let (context, the_execution_engine, the_fpm) = Europa_compiler_codegen.Codegen.init_global_context () in
 
   add_instruction_combination the_fpm;
 
@@ -30,9 +27,9 @@ let main () =
 
   let lexbuf = Lexer.create_lexbuf @@
         Sedlexing.Utf8.from_string (File.lines_of Sys.argv.(1) |> Enum.fold (fun a b -> a ^ "\n" ^ b) "") in
-        Lexer.parse_prog lexbuf |> List.iter (fun x -> let _ = Codegen.codegen_statement x the_fpm in ());
-  dump_module Codegen.the_module;
-  match lookup_function "main" Codegen.the_module with
+        Lexer.parse_prog lexbuf |> Europa_compiler_codegen.Codegen.codegen_global context;
+  dump_module context.the_module;
+  match lookup_function "main" context.the_module with
   | None -> failwith "need function: main"
   | Some the_function ->
     let _ = print_endline "\n\n---- run main ----" in

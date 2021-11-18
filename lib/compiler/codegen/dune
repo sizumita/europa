@@ -1,0 +1,5 @@
+(library
+  (name europa_compiler_codegen)
+  (public_name europa.compiler.codegen)
+ (libraries llvm llvm.analysis llvm.executionengine europa.compiler batteries)
+)

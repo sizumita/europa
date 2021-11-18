@@ -2,6 +2,7 @@ type operator =
   | Plus
   | Minus
   | Mul
+  | Eq
 
 type variable_type =
   | I32T
@@ -18,14 +19,16 @@ type expr =
   | Nil
   | If of expr * expr * expr
   | Call of expr * expr array
-  | Operator of operator * expr * expr
+  | Binary of operator * expr * expr
+  | Line of expr * expr
   [@@deriving show]
 
 type statement =
   | Expr of expr
   (* name, arguments, argument types, return type, statements *)
-  | Func of string * string list * variable_type list * variable_type * statement list
+  | Func of string * string list * variable_type list * variable_type * statement
   | Extern of string * string list * variable_type list * variable_type
+  | Use of string
   [@@deriving show]
 
 let string_of_ParseError (file, line, cnum, tok) =

@@ -5,14 +5,16 @@ open Ast
 %token <string> IDENT TYPE STRING
 %token <int> INT
 %token TRUE FALSE NIL
-%token FUNC IF ELSE EXTERN
-%token PLUS MINUS DIV MUL
+%token FUNC IF ELSE EXTERN EQ
+%token USE
+%token PLUS MINUS DIV MUL SEMI
 %token LB RB LP RP
-%token SEMI COMMA COLON
+%token COMMA COLON
 %token EOF
 
 %left PLUS MINUS
 %left DIV MUL
+%left SEMI
 
 %start <Ast.statement list> prog
 
@@ -39,26 +41,28 @@ toplevel:
 
 // statement is toplevel syntax.
 statement:
-  | FUNC name = IDENT; LP args = option(arguments) RP ret_type = option(TYPE) LB body = option(list(expression)) RB {
+  | FUNC name = IDENT; LP args = option(arguments) RP ret_type = option(TYPE) LB body = option(expression) RB {
     let body = match body with
-    | None -> []
-    | Some body -> body |> List.map (fun x -> Expr x) in
+    | None -> Expr Nil
+    | Some x -> Expr x in
 
     match args with
     | None -> Func (name, [], [], get_type ret_type, body)
     | Some((names, types)) -> Func (name, names, types, get_type ret_type, body)
   }
-  | EXTERN name = IDENT; LP args = option(arguments); RP ret_type = option(TYPE); SEMI { 
+  | EXTERN name = IDENT; LP args = option(arguments); RP ret_type = option(TYPE) { 
     match args with
     | None -> Extern (name, [], [], get_type ret_type)
     | Some((names, types)) -> Extern (name, names, types, get_type ret_type)
     }
+  | USE name = STRING { Use name }
 
 arguments:
   | name = IDENT; arg_type = TYPE; COMMA rest = arguments { let (names, types) = rest in (name :: names, (get_type @@ Some arg_type) :: types) }
   | name = IDENT; arg_type = TYPE; option(COMMA) { ([name], [get_type @@ Some (arg_type)]) }
 
 expression:
+  | lhs = expression; SEMI; rhs = expression; { Line (lhs, rhs) }
   | bin = binary { bin }
   | TRUE { Bool true }
   | FALSE { Bool false }
@@ -68,9 +72,14 @@ expression:
   | value = STRING { Str value }
   | IF cond = expression; LB then_ = expression; RB ELSE LB else_ = expression; RB { If (cond, then_, else_) }
   | name = IDENT; LP RP { Call (Ident name, [||]) }
-  | name = IDENT; LP args = list(expression) RP { Call (Ident name, args |> Array.of_list)}
+  | name = IDENT; LP args = call_args RP { Call (Ident name, args |> Array.of_list)}
+
+call_args:
+  | value = expression; COMMA rest = call_args { value :: rest }
+  | value = expression; option(COMMA) { [value] }
 
 binary:
-  | lhs = expression; PLUS rhs = expression { Operator (Plus, lhs, rhs) }
-  | lhs = expression; MINUS rhs = expression { Operator (Minus, lhs, rhs) }
-  | lhs = expression; MUL rhs = expression { Operator (Mul, lhs, rhs) }
+  | lhs = expression; PLUS rhs = expression { Binary (Plus, lhs, rhs) }
+  | lhs = expression; MINUS rhs = expression { Binary (Minus, lhs, rhs) }
+  | lhs = expression; MUL rhs = expression { Binary (Mul, lhs, rhs) }
+  | lhs = expression; EQ rhs = expression { Binary (Eq, lhs, rhs) }

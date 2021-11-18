@@ -1,5 +1,7 @@
-extern println(sp str) i32;
+extern println(sp str) i32
+use "test"
+
 
 func main() i32 {
-    println("hello, worldだぞ！!")
+    add_and_print(1, 2)
 }

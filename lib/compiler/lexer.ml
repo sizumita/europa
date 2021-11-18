@@ -69,8 +69,10 @@ let rec lex lexbuf =
     | "false" -> update lexbuf ; FALSE
     | "if" -> update lexbuf ; IF
     | "else" -> update lexbuf ; ELSE
-    | str -> update lexbuf ; STRING (lexeme lexbuf)
+    | "use" -> update lexbuf ; USE
+    | str -> update lexbuf ; STRING (let x = lexeme lexbuf in String.sub x 1 (String.length x - 2))
     | ident -> update lexbuf ; IDENT (lexeme lexbuf)
+    | "==" -> update lexbuf ; EQ
     | '{' -> update lexbuf ; LB
     | '}' -> update lexbuf ; RB
     | '(' -> update lexbuf ; LP
