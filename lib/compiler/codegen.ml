@@ -3,14 +3,24 @@ open Llvm
 exception Error of string
 
 let context = global_context ()
-let the_module = create_module context "my cool jit"
+let the_module = create_module context Sys.argv.(1)
 let builder = builder context
 let named_values:(string, llvalue) Hashtbl.t = Hashtbl.create 10
 let double_type = double_type context
 let int_type = i32_type context
-let string_type = i8_type context
 let void_type = void_type context
 let bool_type = i1_type context
+let char_type = i8_type context
+let string_type = pointer_type char_type
+
+let zero_int = const_int int_type 0
+
+let const_string =
+  let string_gep_indices = [|zero_int; zero_int|] in
+  fun s ->
+    let const_s = Llvm.const_stringz context s in
+    let global_s = Llvm.define_global s const_s the_module in
+    Llvm.const_gep global_s string_gep_indices
 
 let get_body body = function
   | Ast.NilT -> if List.length body = 0 then Ast.Expr (Ast.I32 1) else List.hd body
@@ -20,11 +30,13 @@ let get_type = function
   | Ast.I32T -> int_type
   | Ast.NilT -> void_type
   | Ast.BoolT -> bool_type
+  | Ast.StrT -> string_type
 
 let rec codegen_expr = function
   | Ast.Ident name -> (try Hashtbl.find named_values name with
     | Not_found -> raise (Error (Printf.sprintf "unknown variable name: %s" name)))
   | Ast.I32 value -> const_int int_type value
+  | Ast.Str value -> const_string value
   | Ast.If (cond, then_, else_) ->
     let cond = codegen_expr cond in
     let zero = const_int bool_type 1 in

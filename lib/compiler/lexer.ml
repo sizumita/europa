@@ -2,6 +2,10 @@ open Parser
 
 let digit = [%sedlex.regexp? Star '0'..'9']
 let ident = [%sedlex.regexp? ('A'..'Z' | 'a'..'z' | '_'), Star ('A'..'Z' | 'a'..'z' | '0'..'9' | '_')]
+let str = [%sedlex.regexp? (
+    '\"', Star (Compl (Chars "\n\r\"")), '\"'
+  | '\'', Star (Compl (Chars "\n\r\'")), '\''
+)]
 
 type lexbuf = {
   stream : Sedlexing.lexbuf ;
@@ -57,13 +61,15 @@ let rec lex lexbuf =
       lex lexbuf
     | digit -> update lexbuf ; INT (lexeme lexbuf |> int_of_string)
     | "func" -> update lexbuf ; FUNC
-    | "i32" -> update lexbuf ; TYPE "integer"
+    | "i32" -> update lexbuf ; TYPE "i32"
+    | "str" -> update lexbuf ; TYPE "str"
     | "extern" -> update lexbuf ; EXTERN
     | "nil" -> update lexbuf ; NIL
     | "true" -> update lexbuf ; TRUE
     | "false" -> update lexbuf ; FALSE
     | "if" -> update lexbuf ; IF
     | "else" -> update lexbuf ; ELSE
+    | str -> update lexbuf ; STRING (lexeme lexbuf)
     | ident -> update lexbuf ; IDENT (lexeme lexbuf)
     | '{' -> update lexbuf ; LB
     | '}' -> update lexbuf ; RB

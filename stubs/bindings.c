@@ -17,3 +17,8 @@ extern long read_int() {
     scanf("%ld", &dt);
     return dt;
 }
+
+extern int println(char *sp) {
+  printf("%s\n", sp);
+  return 0;
+}

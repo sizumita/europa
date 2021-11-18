@@ -1,12 +1,5 @@
-# 渡した値を表示して改行します。 #
-extern printi(X i32) i32;
-# stdinから数値を読み取ります。 #
-extern read_int() i32; 
-
-func get_value() i32 {
-    read_int() + 50
-}
+extern println(sp str) i32;
 
 func main() i32 {
-    printi(get_value())
+    println("hello, worldだぞ！!")
 }

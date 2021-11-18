@@ -2,7 +2,7 @@
 open Ast
 %}
 
-%token <string> IDENT TYPE
+%token <string> IDENT TYPE STRING
 %token <int> INT
 %token TRUE FALSE NIL
 %token FUNC IF ELSE EXTERN
@@ -65,6 +65,7 @@ expression:
   | NIL { Nil }
   | value = IDENT { Ident value }
   | value = INT { I32 value }
+  | value = STRING { Str value }
   | IF cond = expression; LB then_ = expression; RB ELSE LB else_ = expression; RB { If (cond, then_, else_) }
   | name = IDENT; LP RP { Call (Ident name, [||]) }
   | name = IDENT; LP args = list(expression) RP { Call (Ident name, args |> Array.of_list)}

@@ -7,10 +7,12 @@ type variable_type =
   | I32T
   | NilT
   | BoolT
+  | StrT
 
 type expr =
   | Ident of string
   | I32 of int
+  | Str of string
   | Type of string
   | Bool of bool
   | Nil
@@ -37,7 +39,8 @@ let string_of_ParseError (file, line, cnum, tok) =
     line cnum tok
 
 let get_type = function
-  | Some("integer") -> I32T
+  | Some "i32" -> I32T
   | Some "nil" -> NilT
+  | Some "str" -> StrT
   | None -> NilT
   | _ -> failwith "unknown type"
