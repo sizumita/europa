@@ -1,4 +1,3 @@
-extern println(sp str) i32
 use "test"
 
 

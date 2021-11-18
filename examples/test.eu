@@ -2,6 +2,6 @@ extern println(sp str) i32
 extern printi(X i32) i32
 
 func add_and_print(x i32, y i32) i32 {
-    printi(x + y + 1);
+    printi(x + y + 1)
     1
 }

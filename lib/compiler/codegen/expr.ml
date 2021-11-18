@@ -71,6 +71,4 @@ let rec codegen_expr context expr =
       | _ ->
         raise (Error "unknown binary operator")
     end
-  | Ast.Line (lhs, rhs) ->
-    let _ = codegen_expr context lhs in codegen_expr context rhs
   | _ -> raise (Error "unknown operation expr")

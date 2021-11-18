@@ -38,9 +38,8 @@ and codegen_func context data =
   position_at_end bb context.builder;
   try
  
-    let _ = match ret_type with
-    | Ast.NilT -> build_ret_void context.builder
-    | _ -> let ret_val = codegen_statement context body in build_ret ret_val context.builder in
+    let ret_value = body |> List.map (fun x -> codegen_statement context x) |> List.rev |> List.hd in
+    let _ = build_ret ret_value context.builder in
     (* Validate the generated code, checking for consistency. *)
     Llvm_analysis.assert_valid_function the_function;
 

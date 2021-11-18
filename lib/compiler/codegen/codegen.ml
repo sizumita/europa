@@ -21,7 +21,7 @@ let init_global_context () =
       builder = builder;
       named_values = named_values;
       the_fpm = the_fpm;
-      directory = 
+      directory =
         (let x = (List.rev paths |> List.tl |> List.rev |> List.fold_left (fun a b -> a ^ "/" ^ b) "") in
         if not @@ String.starts_with Sys.argv.(1) "/" then "." ^ x else x);
       dep = "";

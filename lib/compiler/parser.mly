@@ -7,14 +7,13 @@ open Ast
 %token TRUE FALSE NIL
 %token FUNC IF ELSE EXTERN EQ
 %token USE
-%token PLUS MINUS DIV MUL SEMI
+%token PLUS MINUS DIV MUL
 %token LB RB LP RP
-%token COMMA COLON
+%token SEMI COMMA COLON
 %token EOF
 
 %left PLUS MINUS
 %left DIV MUL
-%left SEMI
 
 %start <Ast.statement list> prog
 
@@ -41,10 +40,10 @@ toplevel:
 
 // statement is toplevel syntax.
 statement:
-  | FUNC name = IDENT; LP args = option(arguments) RP ret_type = option(TYPE) LB body = option(expression) RB {
+  | FUNC name = IDENT; LP args = option(arguments) RP ret_type = option(TYPE) LB body = option(list(expression)) RB {
     let body = match body with
-    | None -> Expr Nil
-    | Some x -> Expr x in
+    | None -> []
+    | Some body -> body |> List.map (fun x -> Expr x) in
 
     match args with
     | None -> Func (name, [], [], get_type ret_type, body)
@@ -62,7 +61,6 @@ arguments:
   | name = IDENT; arg_type = TYPE; option(COMMA) { ([name], [get_type @@ Some (arg_type)]) }
 
 expression:
-  | lhs = expression; SEMI; rhs = expression; { Line (lhs, rhs) }
   | bin = binary { bin }
   | TRUE { Bool true }
   | FALSE { Bool false }

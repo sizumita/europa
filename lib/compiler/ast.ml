@@ -20,13 +20,12 @@ type expr =
   | If of expr * expr * expr
   | Call of expr * expr array
   | Binary of operator * expr * expr
-  | Line of expr * expr
   [@@deriving show]
 
 type statement =
   | Expr of expr
   (* name, arguments, argument types, return type, statements *)
-  | Func of string * string list * variable_type list * variable_type * statement
+  | Func of string * string list * variable_type list * variable_type * statement list
   | Extern of string * string list * variable_type list * variable_type
   | Use of string
   [@@deriving show]
