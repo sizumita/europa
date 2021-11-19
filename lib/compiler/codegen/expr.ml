@@ -2,6 +2,10 @@ open Llvm
 open Types
 module Ast = Europa_compiler.Ast
 
+let create_entry_block_alloca context the_function var_name var_type = 
+  let builder = builder_at context.context (instr_begin (entry_block the_function)) in
+  build_alloca var_type var_name builder
+
 let get_type context = function
   | Ast.I32T -> i32_type context.context
   | Ast.NilT -> void_type context.context
@@ -20,9 +24,9 @@ let rec codegen_expr context expr =
   match expr with
   | Ast.Ident name ->
     let v = (try Hashtbl.find context.named_values name with
-    | Not_found -> raise (Error (Printf.sprintf "unknown variable name: %s" name))) in v
-    (* in
-    build_load v name context.builder *)
+    | Not_found -> raise (Error (Printf.sprintf "unknown variable name: %s" name)))
+    in
+    build_load v name context.builder
   | Ast.I32 value -> const_int (get_type Ast.I32T) value
   | Ast.Str value -> const_string value
   | Ast.Nil -> const_null (void_type context.context)
@@ -74,4 +78,23 @@ let rec codegen_expr context expr =
       | Eq -> let i = build_icmp Icmp.Eq lhs_val rhs_val "eqtmp" context.builder in
       build_uitofp i (i1_type context.context) "booltmp" context.builder
     end
+  | Ast.Assign (name, value) ->
+    let val_ = codegen_expr context value in
+    begin
+      try 
+        let variable = Hashtbl.find context.named_values name 
+        in
+        ignore(build_store val_ variable context.builder);
+        val_
+      with
+        | Not_found -> assign_new context name value
+        | x -> raise x
+    end
   | _ -> raise (Error "unknown operation expr")
+and assign_new context name value =
+  let the_function = block_parent (insertion_block context.builder) in
+  let init_val = codegen_expr context value in
+  let alloca = create_entry_block_alloca context the_function name (type_of init_val) in
+  build_store init_val alloca context.builder |> ignore;
+  Hashtbl.add context.named_values name alloca;
+  init_val

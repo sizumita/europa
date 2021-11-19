@@ -1,17 +1,17 @@
 extern printi(x i32) i32
 extern println(x str) i32
 
-func loop(x i32) i32 {
-    if x == 5 {
-        println("x is 5. ending...")
-        0
-    } else {
-        println("x is not 5. rerunning...")
-        printi(x)
-        loop(x + 1)
-    }
+func test(x i32, y i32) i32 {
+    printi(x)
+    x = x + y
+    printi(x)
+    z = 4
+    x = x + z
+    printi(x)
+    0
 }
 
 func main() i32 {
-    loop(1)
+    test(1, 2)
+    0
 }

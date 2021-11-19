@@ -10,6 +10,9 @@ let get_type context = function
   | Ast.BoolT -> i1_type context.context
   | Ast.StrT -> pointer_type (i8_type context.context)
 
+let create_entry_block_alloca context the_function var_name var_type = 
+  let builder = builder_at context.context (instr_begin (entry_block the_function)) in
+  build_alloca var_type var_name builder
 
 let rec codegen_statement (context : Types.codegen_context) (statement: Ast.statement) =
   match statement with
@@ -30,6 +33,15 @@ let rec codegen_statement (context : Types.codegen_context) (statement: Ast.stat
     const_int (i1_type context.context) 1
   (* | _ -> raise (Error "unknown operation stmt") *)
 
+and create_argument_allocas context the_function args =
+  let args = args |> Array.of_list in
+  Array.iteri (fun i arg_value -> (
+    let arg = args.(i) in
+    let alloca = create_entry_block_alloca context the_function arg (type_of arg_value) in
+    build_store arg_value alloca context.builder |> ignore;
+    Hashtbl.add context.named_values arg alloca
+  )) (params the_function)
+
 and codegen_func context data = 
   let name, args, arg_types, ret_type, body = data in
   Hashtbl.clear context.named_values;
@@ -38,6 +50,7 @@ and codegen_func context data =
   position_at_end bb context.builder;
   try
  
+    create_argument_allocas context the_function args;
     let ret_value = body |> List.map (fun x -> codegen_statement context x) |> List.rev |> List.hd in
     let _ = build_ret ret_value context.builder in
     (* Validate the generated code, checking for consistency. *)

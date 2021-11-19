@@ -12,9 +12,9 @@ open Ast
 %token SEMI COMMA COLON
 %token EOF
 
+%left ASSIGN
 %left PLUS MINUS
 %left DIV MUL
-%left ASSIGN
 
 %start <Ast.statement list> prog
 
