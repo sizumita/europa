@@ -12,6 +12,8 @@ let main_function_call the_function ee =
 let main () =
   let (context, the_execution_engine, the_fpm) = Europa_compiler_codegen.Codegen.init_global_context () in
 
+  add_memory_to_register_promotion the_fpm;
+
   add_instruction_combination the_fpm;
 
   (* reassociate expressions. *)

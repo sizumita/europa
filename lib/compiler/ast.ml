@@ -17,9 +17,10 @@ type expr =
   | Type of string
   | Bool of bool
   | Nil
-  | If of expr * expr * expr
+  | If of expr * expr list * expr list
   | Call of expr * expr array
   | Binary of operator * expr * expr
+  | Assign of string * expr
   [@@deriving show]
 
 type statement =

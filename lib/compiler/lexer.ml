@@ -73,6 +73,7 @@ let rec lex lexbuf =
     | str -> update lexbuf ; STRING (let x = lexeme lexbuf in String.sub x 1 (String.length x - 2))
     | ident -> update lexbuf ; IDENT (lexeme lexbuf)
     | "==" -> update lexbuf ; EQ
+    | "=" -> update lexbuf ; ASSIGN
     | '{' -> update lexbuf ; LB
     | '}' -> update lexbuf ; RB
     | '(' -> update lexbuf ; LP

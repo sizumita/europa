@@ -5,7 +5,7 @@ open Ast
 %token <string> IDENT TYPE STRING
 %token <int> INT
 %token TRUE FALSE NIL
-%token FUNC IF ELSE EXTERN EQ
+%token FUNC IF ELSE EXTERN EQ ASSIGN
 %token USE
 %token PLUS MINUS DIV MUL
 %token LB RB LP RP
@@ -14,6 +14,7 @@ open Ast
 
 %left PLUS MINUS
 %left DIV MUL
+%left ASSIGN
 
 %start <Ast.statement list> prog
 
@@ -62,13 +63,14 @@ arguments:
 
 expression:
   | bin = binary { bin }
+  | name = IDENT; ASSIGN value = expression; { Assign (name, value) }
   | TRUE { Bool true }
   | FALSE { Bool false }
   | NIL { Nil }
   | value = IDENT { Ident value }
   | value = INT { I32 value }
   | value = STRING { Str value }
-  | IF cond = expression; LB then_ = expression; RB ELSE LB else_ = expression; RB { If (cond, then_, else_) }
+  | IF cond = expression; LB then_ = list(expression); RB ELSE LB else_ = list(expression); RB { If (cond, then_, else_) }
   | name = IDENT; LP RP { Call (Ident name, [||]) }
   | name = IDENT; LP args = call_args RP { Call (Ident name, args |> Array.of_list)}
 

@@ -2,6 +2,11 @@ extern println(sp str) i32
 extern printi(X i32) i32
 
 func add_and_print(x i32, y i32) i32 {
-    printi(x + y + 1)
+    if x == 3 {
+        printi(x + y + 1)
+        println("x is 3!")
+    } else {
+        printi(x + y)
+    }
     1
 }

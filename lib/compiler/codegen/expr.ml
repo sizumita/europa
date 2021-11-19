@@ -18,8 +18,11 @@ let rec codegen_expr context expr =
       let global_s = Llvm.define_global s const_s context.the_module in
       Llvm.const_gep global_s string_gep_indices in
   match expr with
-  | Ast.Ident name -> (try Hashtbl.find context.named_values name with
-    | Not_found -> raise (Error (Printf.sprintf "unknown variable name: %s" name)))
+  | Ast.Ident name ->
+    let v = (try Hashtbl.find context.named_values name with
+    | Not_found -> raise (Error (Printf.sprintf "unknown variable name: %s" name))) in v
+    (* in
+    build_load v name context.builder *)
   | Ast.I32 value -> const_int (get_type Ast.I32T) value
   | Ast.Str value -> const_string value
   | Ast.Nil -> const_null (void_type context.context)
@@ -31,11 +34,11 @@ let rec codegen_expr context expr =
     let the_function = block_parent start_bb in
     let then_bb = append_block context.context "then" the_function in
     position_at_end then_bb context.builder;
-    let then_val = codegen_expr context then_ in
+    let then_val = then_ |> List.map (fun x -> codegen_expr context x) |> List.rev |> List.hd in
     let new_then_bb = insertion_block context.builder in
     let else_bb = append_block context.context "else" the_function in
     position_at_end else_bb context.builder;
-    let else_val = codegen_expr context else_ in
+    let else_val = else_ |> List.map (fun x -> codegen_expr context x) |> List.rev |> List.hd in
     let new_else_bb = insertion_block context.builder in
     let merge_bb = append_block context.context "ifcont" the_function in
     position_at_end merge_bb context.builder;
@@ -68,7 +71,7 @@ let rec codegen_expr context expr =
       | Plus -> build_add lhs_val rhs_val "addtmp" context.builder
       | Minus -> build_sub lhs_val rhs_val "subtmp" context.builder
       | Mul -> build_mul lhs_val rhs_val "multmp" context.builder
-      | _ ->
-        raise (Error "unknown binary operator")
+      | Eq -> let i = build_icmp Icmp.Eq lhs_val rhs_val "eqtmp" context.builder in
+      build_uitofp i (i1_type context.context) "booltmp" context.builder
     end
   | _ -> raise (Error "unknown operation expr")
