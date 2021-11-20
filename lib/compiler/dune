@@ -4,6 +4,6 @@
 (library
   (name europa_compiler)
   (public_name europa.compiler)
-   (preprocess (pps sedlex.ppx))
- (libraries sedlex menhirLib ppx_deriving ppx_deriving.show llvm llvm.analysis)
+   (preprocess (pps sedlex.ppx ppx_deriving.show))
+ (libraries sedlex menhirLib ppx_deriving ppx_deriving.show llvm llvm.analysis batteries)
 )

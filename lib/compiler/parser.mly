@@ -2,7 +2,7 @@
 open Ast
 %}
 
-%token <string> IDENT TYPE STRING
+%token <string> IDENT TYPE STRING CALLIDENT
 %token <int> INT
 %token TRUE FALSE NIL
 %token FUNC IF ELSE EXTERN EQ ASSIGN
@@ -72,7 +72,9 @@ expression:
   | value = STRING { Str value }
   | IF cond = expression; LB then_ = list(expression); RB ELSE LB else_ = list(expression); RB { If (cond, then_, else_) }
   | name = IDENT; LP RP { Call (Ident name, [||]) }
+  | name = CALLIDENT; LP RP { Call (Ident name, [||]) }
   | name = IDENT; LP args = call_args RP { Call (Ident name, args |> Array.of_list)}
+  | name = CALLIDENT; LP args = call_args RP { Call (Ident name, args |> Array.of_list)}
 
 call_args:
   | value = expression; COMMA rest = call_args { value :: rest }

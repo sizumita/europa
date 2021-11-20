@@ -30,7 +30,7 @@ let rec codegen_statement (context : Types.codegen_context) (statement: Ast.stat
     let lines = (File.lines_of filename |> Enum.fold (fun a b -> a ^ "\n" ^ b) "") in
     let lexbuf = Lexer.create_lexbuf @@ Sedlexing.Utf8.from_string lines in
     Lexer.parse_prog lexbuf |> List.iter (fun x -> let _ = x |> codegen_statement context in ());
-    const_int (i1_type context.context) 1
+    const_int context.t.bool_type 1
   (* | _ -> raise (Error "unknown operation stmt") *)
 
 and create_argument_allocas context the_function args =

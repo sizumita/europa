@@ -26,6 +26,7 @@ let main () =
   add_cfg_simplification the_fpm;
 
   ignore (PassManager.initialize the_fpm);
+  Europa_compiler_codegen.Codegen.set_builtin_functions context;
 
   let lexbuf = Lexer.create_lexbuf @@
         Sedlexing.Utf8.from_string (File.lines_of Sys.argv.(1) |> Enum.fold (fun a b -> a ^ "\n" ^ b) "") in

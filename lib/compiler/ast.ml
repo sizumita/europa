@@ -3,12 +3,14 @@ type operator =
   | Minus
   | Mul
   | Eq
+  [@@deriving show]
 
 type variable_type =
   | I32T
   | NilT
   | BoolT
   | StrT
+  [@@deriving show]
 
 type expr =
   | Ident of string
@@ -45,5 +47,6 @@ let get_type = function
   | Some "i32" -> I32T
   | Some "nil" -> NilT
   | Some "str" -> StrT
+  | Some "bool" -> BoolT
   | None -> NilT
   | _ -> failwith "unknown type"

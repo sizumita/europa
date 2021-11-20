@@ -7,20 +7,18 @@ let create_entry_block_alloca context the_function var_name var_type =
   build_alloca var_type var_name builder
 
 let get_type context = function
-  | Ast.I32T -> i32_type context.context
-  | Ast.NilT -> void_type context.context
-  | Ast.BoolT -> i1_type context.context
-  | Ast.StrT -> pointer_type (i8_type context.context)
+  | Ast.I32T -> context.t.int32_type
+  | Ast.NilT -> context.t.nil_type
+  | Ast.BoolT -> context.t.bool_type
+  | Ast.StrT -> context.t.string_type
+
+let get_callee context name =
+  match lookup_function name context.the_module with
+  | Some callee -> callee
+  | None -> raise (Error (Printf.sprintf "unknown function referenced: %s\n" name))
 
 let rec codegen_expr context expr =
   let get_type = get_type context in
-  let zero_int = const_int (get_type Ast.I32T) 0 in
-  let const_string =
-    let string_gep_indices = [|zero_int; zero_int|] in
-    fun s ->
-      let const_s = Llvm.const_stringz context.context s in
-      let global_s = Llvm.define_global s const_s context.the_module in
-      Llvm.const_gep global_s string_gep_indices in
   match expr with
   | Ast.Ident name ->
     let v = (try Hashtbl.find context.named_values name with
@@ -28,7 +26,7 @@ let rec codegen_expr context expr =
     in
     build_load v name context.builder
   | Ast.I32 value -> const_int (get_type Ast.I32T) value
-  | Ast.Str value -> const_string value
+  | Ast.Str value -> context.t.const_string value
   | Ast.Nil -> const_null (void_type context.context)
   | Ast.If (cond, then_, else_) ->
     let cond = codegen_expr context cond in
@@ -56,17 +54,13 @@ let rec codegen_expr context expr =
 
     phi
   | Ast.Call (Ast.Ident callee, args) -> 
-    let callee =
-      match lookup_function callee context.the_module with
-      | Some callee -> callee
-      | None -> raise (Error (Printf.sprintf "unknown function referenced: %s" callee))
-    in
+    let callee = get_callee context callee in
     let params = params callee in
     if Array.length params == Array.length args then () else
       raise (Error "incorrect # arguments passed");
     let args = args |> Array.map @@ codegen_expr context in
     build_call callee args "calltmp" context.builder
-  | Ast.Bool value -> const_int (get_type Ast.I32T) (if value then 1 else 0)
+  | Ast.Bool value -> const_int context.t.int32_type (if value then 1 else 0)
   | Ast.Binary (op, lhs, rhs) -> 
     let lhs_val = codegen_expr context lhs in
     let rhs_val = codegen_expr context rhs in
@@ -75,13 +69,12 @@ let rec codegen_expr context expr =
       | Plus -> build_add lhs_val rhs_val "addtmp" context.builder
       | Minus -> build_sub lhs_val rhs_val "subtmp" context.builder
       | Mul -> build_mul lhs_val rhs_val "multmp" context.builder
-      | Eq -> let i = build_icmp Icmp.Eq lhs_val rhs_val "eqtmp" context.builder in
-      build_uitofp i (i1_type context.context) "booltmp" context.builder
+      | Eq -> codegen_eq context lhs_val rhs_val
     end
   | Ast.Assign (name, value) ->
     let val_ = codegen_expr context value in
     begin
-      try 
+      try
         let variable = Hashtbl.find context.named_values name 
         in
         ignore(build_store val_ variable context.builder);
@@ -98,3 +91,13 @@ and assign_new context name value =
   build_store init_val alloca context.builder |> ignore;
   Hashtbl.add context.named_values name alloca;
   init_val
+and codegen_eq context lhs_val rhs_val =
+  match (type_of lhs_val, type_of rhs_val) with
+  | x when x = (context.t.int32_type, context.t.int32_type) -> 
+    let i = build_icmp Icmp.Eq lhs_val rhs_val "eqtmp" context.builder in
+    i
+  | x when x = (context.t.string_type, context.t.string_type) -> 
+    let i = build_call (get_callee context "__String__compare") [|lhs_val; rhs_val|] "calltmp" context.builder in
+    let i' = build_icmp Icmp.Eq i (const_int context.t.int32_type 0) "eqtmp" context.builder in
+    i'
+  | _ -> raise (Error "this value cannot compare")

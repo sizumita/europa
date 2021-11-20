@@ -1,17 +1,17 @@
 extern printi(x i32) i32
 extern println(x str) i32
+extern same(x str, y str) bool
 
-func test(x i32, y i32) i32 {
-    printi(x)
-    x = x + y
-    printi(x)
-    z = 4
-    x = x + z
-    printi(x)
-    0
+func test(x str) i32 {
+    if x == "abc" {
+        println("same")
+    } else {
+        println("diff")
+    }
 }
 
 func main() i32 {
-    test(1, 2)
+    printi(String.compare("abc", "abc"))
+    test("abc")
     0
 }

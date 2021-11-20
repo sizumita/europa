@@ -1,7 +1,9 @@
 open Parser
+open Batteries
 
 let digit = [%sedlex.regexp? Star '0'..'9']
 let ident = [%sedlex.regexp? ('A'..'Z' | 'a'..'z' | '_'), Star ('A'..'Z' | 'a'..'z' | '0'..'9' | '_')]
+let ident_with_dot = [%sedlex.regexp? ('A'..'Z' | 'a'..'z' | '_'), Star ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')]
 let str = [%sedlex.regexp? (
     '\"', Star (Compl (Chars "\n\r\"")), '\"'
   | '\'', Star (Compl (Chars "\n\r\'")), '\''
@@ -30,7 +32,12 @@ let new_line ?(n=0) lexbuf =
         pos_bol = lcp.pos_cnum;
     }
 
-exception ParseError of (string * int * int * string)
+let rec replace_dot target =
+  match String.replace ~str:target ~sub:"." ~by:"__" with
+  | (true, result) -> replace_dot result
+  | (false, result) -> result 
+
+  exception ParseError of (string * int * int * string)
 
 let update lexbuf =
   let new_pos = Sedlexing.lexeme_end lexbuf.stream in
@@ -63,6 +70,7 @@ let rec lex lexbuf =
     | "func" -> update lexbuf ; FUNC
     | "i32" -> update lexbuf ; TYPE "i32"
     | "str" -> update lexbuf ; TYPE "str"
+    | "bool" -> update lexbuf ; TYPE "bool"
     | "extern" -> update lexbuf ; EXTERN
     | "nil" -> update lexbuf ; NIL
     | "true" -> update lexbuf ; TRUE
@@ -72,6 +80,7 @@ let rec lex lexbuf =
     | "use" -> update lexbuf ; USE
     | str -> update lexbuf ; STRING (let x = lexeme lexbuf in String.sub x 1 (String.length x - 2))
     | ident -> update lexbuf ; IDENT (lexeme lexbuf)
+    | ident_with_dot -> update lexbuf ; CALLIDENT (lexeme lexbuf |> replace_dot |> fun x -> "__" ^ x)
     | "==" -> update lexbuf ; EQ
     | "=" -> update lexbuf ; ASSIGN
     | '{' -> update lexbuf ; LB
