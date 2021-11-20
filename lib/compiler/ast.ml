@@ -7,9 +7,9 @@ type operator =
 
 type variable_type =
   | I32T
-  | NilT
   | BoolT
   | StrT
+  | UnitT
   [@@deriving show]
 
 type expr =
@@ -18,7 +18,7 @@ type expr =
   | Str of string
   | Type of string
   | Bool of bool
-  | Nil
+  | Unit
   | If of expr * expr list * expr list
   | Call of expr * expr array
   | Binary of operator * expr * expr
@@ -45,8 +45,7 @@ let string_of_ParseError (file, line, cnum, tok) =
 
 let get_type = function
   | Some "i32" -> I32T
-  | Some "nil" -> NilT
   | Some "str" -> StrT
   | Some "bool" -> BoolT
-  | None -> NilT
+  | None -> UnitT
   | _ -> failwith "unknown type"

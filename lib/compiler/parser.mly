@@ -4,7 +4,7 @@ open Ast
 
 %token <string> IDENT TYPE STRING CALLIDENT
 %token <int> INT
-%token TRUE FALSE NIL
+%token TRUE FALSE
 %token FUNC IF ELSE EXTERN EQ ASSIGN
 %token USE
 %token PLUS MINUS DIV MUL
@@ -62,11 +62,12 @@ arguments:
   | name = IDENT; arg_type = TYPE; option(COMMA) { ([name], [get_type @@ Some (arg_type)]) }
 
 expression:
+  | LP RP { Unit }
+  | LP expr = expression; RP { expr }
   | bin = binary { bin }
   | name = IDENT; ASSIGN value = expression; { Assign (name, value) }
   | TRUE { Bool true }
   | FALSE { Bool false }
-  | NIL { Nil }
   | value = IDENT { Ident value }
   | value = INT { I32 value }
   | value = STRING { Str value }

@@ -4,7 +4,12 @@ open Batteries
 module Ast = Europa_compiler.Ast
 
 let builtin_functions = [
-  ("__String__compare", ["x"; "y"], [Ast.StrT; Ast.StrT], Ast.I32T)
+  ("__String__compare", ["x"; "y"], [Ast.StrT; Ast.StrT], Ast.I32T);
+  ("__String__equals", ["x"; "y"], [Ast.StrT; Ast.StrT], Ast.BoolT);
+  ("__String__length", ["x"], [Ast.StrT], Ast.I32T);
+
+  ("println", ["x"], [Ast.StrT], Ast.I32T);
+  ("printi", ["x"], [Ast.I32T], Ast.I32T);
 ]
 
 
@@ -26,7 +31,7 @@ let init_global_context () =
     string_type = pointer_type (i8_type context);
     int32_type = i32_type context;
     bool_type = i1_type context;
-    nil_type = void_type context;
+    unit_type = named_struct_type context "unit";
     const_string = let string_gep_indices = [|zero_int; zero_int|] in
     fun s ->
       let const_s = Llvm.const_stringz context s in

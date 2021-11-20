@@ -5,10 +5,10 @@ module Lexer = Europa_compiler.Lexer
 open Batteries
 
 let get_type context = function
-  | Ast.I32T -> i32_type context.context
-  | Ast.NilT -> void_type context.context
-  | Ast.BoolT -> i1_type context.context
-  | Ast.StrT -> pointer_type (i8_type context.context)
+  | Ast.I32T -> context.t.int32_type
+  | Ast.BoolT -> context.t.bool_type
+  | Ast.StrT -> context.t.string_type
+  | Ast.UnitT -> context.t.unit_type
 
 let create_entry_block_alloca context the_function var_name var_type = 
   let builder = builder_at context.context (instr_begin (entry_block the_function)) in
@@ -45,13 +45,14 @@ and create_argument_allocas context the_function args =
 and codegen_func context data = 
   let name, args, arg_types, ret_type, body = data in
   Hashtbl.clear context.named_values;
+  Ast.show_variable_type ret_type |> print_endline;
   let the_function = codegen_definition (name, args, arg_types, ret_type) context in
   let bb = append_block context.context "entry" the_function in
   position_at_end bb context.builder;
   try
  
     create_argument_allocas context the_function args;
-    let ret_value = body |> List.map (fun x -> codegen_statement context x) |> List.rev |> List.hd in
+    let ret_value = if not @@ List.is_empty body then body |> List.map (fun x -> codegen_statement context x) |> List.rev |> List.hd else Expr.codegen_expr context @@ Ast.Unit in
     let _ = build_ret ret_value context.builder in
     (* Validate the generated code, checking for consistency. *)
     Llvm_analysis.assert_valid_function the_function;

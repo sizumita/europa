@@ -4,7 +4,7 @@ type types = {
   string_type: lltype;
   int32_type: lltype;
   bool_type: lltype;
-  nil_type: lltype;
+  unit_type: lltype;
   const_string: string -> llvalue;
 }
 

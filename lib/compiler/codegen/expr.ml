@@ -8,9 +8,9 @@ let create_entry_block_alloca context the_function var_name var_type =
 
 let get_type context = function
   | Ast.I32T -> context.t.int32_type
-  | Ast.NilT -> context.t.nil_type
   | Ast.BoolT -> context.t.bool_type
   | Ast.StrT -> context.t.string_type
+  | Ast.UnitT -> context.t.unit_type
 
 let get_callee context name =
   match lookup_function name context.the_module with
@@ -27,11 +27,11 @@ let rec codegen_expr context expr =
     build_load v name context.builder
   | Ast.I32 value -> const_int (get_type Ast.I32T) value
   | Ast.Str value -> context.t.const_string value
-  | Ast.Nil -> const_null (void_type context.context)
+  | Ast.Unit -> const_named_struct context.t.unit_type [||]
   | Ast.If (cond, then_, else_) ->
     let cond = codegen_expr context cond in
-    let zero = const_int (get_type Ast.BoolT) 1 in
-    let cond_val = build_icmp Icmp.Eq cond zero "ifcond" context.builder in
+    let true_ = const_int context.t.bool_type 1 in
+    let cond_val = build_icmp Icmp.Eq cond true_ "ifcond" context.builder in
     let start_bb = insertion_block context.builder in
     let the_function = block_parent start_bb in
     let then_bb = append_block context.context "then" the_function in
@@ -97,7 +97,6 @@ and codegen_eq context lhs_val rhs_val =
     let i = build_icmp Icmp.Eq lhs_val rhs_val "eqtmp" context.builder in
     i
   | x when x = (context.t.string_type, context.t.string_type) -> 
-    let i = build_call (get_callee context "__String__compare") [|lhs_val; rhs_val|] "calltmp" context.builder in
-    let i' = build_icmp Icmp.Eq i (const_int context.t.int32_type 0) "eqtmp" context.builder in
-    i'
+    let i = build_call (get_callee context "__String__equals") [|lhs_val; rhs_val|] "calltmp" context.builder in
+    i
   | _ -> raise (Error "this value cannot compare")

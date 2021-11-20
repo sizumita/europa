@@ -72,7 +72,6 @@ let rec lex lexbuf =
     | "str" -> update lexbuf ; TYPE "str"
     | "bool" -> update lexbuf ; TYPE "bool"
     | "extern" -> update lexbuf ; EXTERN
-    | "nil" -> update lexbuf ; NIL
     | "true" -> update lexbuf ; TRUE
     | "false" -> update lexbuf ; FALSE
     | "if" -> update lexbuf ; IF

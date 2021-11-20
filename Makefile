@@ -5,4 +5,4 @@ make test: dune-project
 
 	dune build
 
-	./_build/install/default/bin/europa examples/first.eu
+	./_build/install/default/bin/europa examples/main.eu
