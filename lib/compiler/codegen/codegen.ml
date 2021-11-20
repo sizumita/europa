@@ -10,6 +10,7 @@ let builtin_functions = [
 
   ("println", ["x"], [Ast.StrT], Ast.I32T);
   ("printi", ["x"], [Ast.I32T], Ast.I32T);
+  ("printd", ["x"], [Ast.F64T], Ast.I32T);
 ]
 
 
@@ -31,6 +32,7 @@ let init_global_context () =
     string_type = pointer_type (i8_type context);
     int32_type = i32_type context;
     bool_type = i1_type context;
+    float64_type = double_type context;
     unit_type = named_struct_type context "unit";
     const_string = let string_gep_indices = [|zero_int; zero_int|] in
     fun s ->

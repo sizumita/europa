@@ -4,11 +4,6 @@ module Ast = Europa_compiler.Ast
 module Lexer = Europa_compiler.Lexer
 open Batteries
 
-let get_type context = function
-  | Ast.I32T -> context.t.int32_type
-  | Ast.BoolT -> context.t.bool_type
-  | Ast.StrT -> context.t.string_type
-  | Ast.UnitT -> context.t.unit_type
 
 let create_entry_block_alloca context the_function var_name var_type = 
   let builder = builder_at context.context (instr_begin (entry_block the_function)) in

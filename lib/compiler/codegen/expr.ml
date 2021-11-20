@@ -6,11 +6,6 @@ let create_entry_block_alloca context the_function var_name var_type =
   let builder = builder_at context.context (instr_begin (entry_block the_function)) in
   build_alloca var_type var_name builder
 
-let get_type context = function
-  | Ast.I32T -> context.t.int32_type
-  | Ast.BoolT -> context.t.bool_type
-  | Ast.StrT -> context.t.string_type
-  | Ast.UnitT -> context.t.unit_type
 
 let get_callee context name =
   match lookup_function name context.the_module with
@@ -18,14 +13,14 @@ let get_callee context name =
   | None -> raise (Error (Printf.sprintf "unknown function referenced: %s\n" name))
 
 let rec codegen_expr context expr =
-  let get_type = get_type context in
   match expr with
   | Ast.Ident name ->
     let v = (try Hashtbl.find context.named_values name with
     | Not_found -> raise (Error (Printf.sprintf "unknown variable name: %s" name)))
     in
     build_load v name context.builder
-  | Ast.I32 value -> const_int (get_type Ast.I32T) value
+  | Ast.I32 value -> const_int context.t.int32_type value
+  | Ast.F64 value -> const_float context.t.float64_type value
   | Ast.Str value -> context.t.const_string value
   | Ast.Unit -> const_named_struct context.t.unit_type [||]
   | Ast.If (cond, then_, else_) ->
@@ -99,4 +94,5 @@ and codegen_eq context lhs_val rhs_val =
   | x when x = (context.t.string_type, context.t.string_type) -> 
     let i = build_call (get_callee context "__String__equals") [|lhs_val; rhs_val|] "calltmp" context.builder in
     i
+  | x when x = (context.t.unit_type, context.t.unit_type) -> const_int context.t.bool_type 1
   | _ -> raise (Error "this value cannot compare")

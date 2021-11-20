@@ -4,6 +4,7 @@ open Batteries
 let digit = [%sedlex.regexp? Star '0'..'9']
 let ident = [%sedlex.regexp? ('A'..'Z' | 'a'..'z' | '_'), Star ('A'..'Z' | 'a'..'z' | '0'..'9' | '_')]
 let ident_with_dot = [%sedlex.regexp? ('A'..'Z' | 'a'..'z' | '_'), Star ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '.')]
+let float_digit = [%sedlex.regexp? Star '0'..'9', '.', Star '0'..'9']
 let str = [%sedlex.regexp? (
     '\"', Star (Compl (Chars "\n\r\"")), '\"'
   | '\'', Star (Compl (Chars "\n\r\'")), '\''
@@ -67,6 +68,7 @@ let rec lex lexbuf =
       update lexbuf;
       lex lexbuf
     | digit -> update lexbuf ; INT (lexeme lexbuf |> int_of_string)
+    | float_digit -> update lexbuf ; FLOAT (lexeme lexbuf |> float_of_string)
     | "func" -> update lexbuf ; FUNC
     | "i32" -> update lexbuf ; TYPE "i32"
     | "str" -> update lexbuf ; TYPE "str"

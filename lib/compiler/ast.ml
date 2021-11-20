@@ -10,11 +10,13 @@ type variable_type =
   | BoolT
   | StrT
   | UnitT
+  | F64T
   [@@deriving show]
 
 type expr =
   | Ident of string
   | I32 of int
+  | F64 of float
   | Str of string
   | Type of string
   | Bool of bool
@@ -47,5 +49,6 @@ let get_type = function
   | Some "i32" -> I32T
   | Some "str" -> StrT
   | Some "bool" -> BoolT
+  | Some "float" -> F64T
   | None -> UnitT
   | _ -> failwith "unknown type"
