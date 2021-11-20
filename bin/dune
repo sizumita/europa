@@ -2,6 +2,6 @@
  (public_name europa)
  (name main)
  (libraries europa.compiler europa.compiler.codegen llvm llvm.executionengine llvm.target llvm.scalar_opts batteries)
- (link_deps (file ../stubs/libbindings.so))
- (link_flags -cclib -Lstubs -cclib -lbindings)
+ (link_deps (file ../libeuropa/libeuropa.so))
+ (link_flags -cclib -Llibeuropa -cclib -leuropa)
 )
